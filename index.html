@@ -251,12 +251,12 @@ const CAT_COLORS={
   "Sparen & Vorsorge":"#22b07d","Versicherungen":"#4f7cff","Lebensmittel & Drogerie":"#e0a100",
   "Auto & Tanken":"#e5565a","Essen & Ausgehen":"#f2994a","Freizeit & Reisen":"#14b8c6",
   "Shopping & Online":"#b266e0","Abos & Handy":"#7a5cff","Schlagzeug & Band":"#e24ea0",
-  "Fitness & Pflege":"#3aa5a0","Lotto":"#a1887f","Bargeld":"#6b7589","Privat & Freunde":"#8e9fbf",
+  "Fitness & Pflege":"#3aa5a0","Gesundheit & Brille":"#5c9ded","Lotto":"#a1887f","Bargeld":"#6b7589","Privat & Freunde":"#8e9fbf",
   [SPECIAL_KK]:"#c0504d","Sonstiges":"#8a94a6",
   "Gehalt":"#1f9d6b","Honorar & Nebenverdienst":"#2fbf8f","Lotto (Gewinn)":"#a1887f","Bargeld (Einzahlung)":"#6b7589","Sonstige Einnahmen":"#5ba4cf",
   [SPECIAL_EIGEN]:"#9aa5ba",[SPECIAL_AUFL]:"#7fb3a3"
 };
-const EXPENSE_CATS=["Sparen & Vorsorge","Versicherungen","Lebensmittel & Drogerie","Auto & Tanken","Essen & Ausgehen","Freizeit & Reisen","Shopping & Online","Abos & Handy","Schlagzeug & Band","Fitness & Pflege","Lotto","Bargeld","Privat & Freunde",SPECIAL_KK,"Sonstiges"];
+const EXPENSE_CATS=["Sparen & Vorsorge","Versicherungen","Lebensmittel & Drogerie","Auto & Tanken","Essen & Ausgehen","Freizeit & Reisen","Shopping & Online","Abos & Handy","Schlagzeug & Band","Fitness & Pflege","Gesundheit & Brille","Lotto","Bargeld","Privat & Freunde",SPECIAL_KK,"Sonstiges"];
 const INCOME_CATS=["Gehalt","Honorar & Nebenverdienst","Lotto (Gewinn)","Bargeld (Einzahlung)","Sonstige Einnahmen"];
 const ALL_CATS=[...EXPENSE_CATS,...INCOME_CATS,SPECIAL_EIGEN,SPECIAL_AUFL];
 
@@ -332,6 +332,7 @@ const EXP_RULES=[
   ["Abos & Handy",/netflix|spotify|handy|disney|icloud|apple\.com/],
   ["Lotto",/lotto|sporttoto/],
   ["Fitness & Pflege",/fitness first|smile x|haare|friseur|barber|yedo|rituals|apotheke|ganzheit|gfg /],
+  ["Gesundheit & Brille",/sichtschmiede|optik|optiker|fielmann|brille|augenarzt|zahnarzt|arztpraxis/],
   ["Lebensmittel & Drogerie",/rewe|penny|aldi|edeka|lidl|globus markthalle|dm drogerie|drogeriemarkt|müller|mueller|sehne|backwaren|getränke|getraenke|welsch|netto|kaufland|bäcker|baeckerei|carrefour|delhaize/],
   ["Auto & Tanken",/aral|shell|oil tank|tankstelle|calpam|circle k|couche-tard|reifen|wash|acv|kfz-steuer|q park|parkhaus|raststa|autobahn/],
   ["Freizeit & Reisen",/eventim|arena|htl\.|bahn|zugspitz|wank|alpspitz|osterfelder|trimini|kino|konzert|ticket|hotel|booking|wittelsbacher|schloss/],
