@@ -244,6 +244,8 @@ footer{color:var(--muted);font-size:.78rem;text-align:center;margin-top:8px}
 /*LIB*/
 const MONTH_NAMES=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 const SPECIAL_EIGEN="Eigenüberweisung";
+const SPECIAL_AUFL="Auflösung Ersparnis";
+const isUms=r=>r.cat===SPECIAL_EIGEN||r.cat===SPECIAL_AUFL;
 const SPECIAL_KK="Kreditkarte (Sammelbuchung)";
 const CAT_COLORS={
   "Sparen & Vorsorge":"#22b07d","Versicherungen":"#4f7cff","Lebensmittel & Drogerie":"#e0a100",
@@ -252,11 +254,11 @@ const CAT_COLORS={
   "Fitness & Pflege":"#3aa5a0","Lotto":"#a1887f","Bargeld":"#6b7589","Privat & Freunde":"#8e9fbf",
   [SPECIAL_KK]:"#c0504d","Sonstiges":"#8a94a6",
   "Gehalt":"#1f9d6b","Honorar & Nebenverdienst":"#2fbf8f","Lotto (Gewinn)":"#a1887f","Bargeld (Einzahlung)":"#6b7589","Sonstige Einnahmen":"#5ba4cf",
-  [SPECIAL_EIGEN]:"#9aa5ba"
+  [SPECIAL_EIGEN]:"#9aa5ba",[SPECIAL_AUFL]:"#7fb3a3"
 };
 const EXPENSE_CATS=["Sparen & Vorsorge","Versicherungen","Lebensmittel & Drogerie","Auto & Tanken","Essen & Ausgehen","Freizeit & Reisen","Shopping & Online","Abos & Handy","Schlagzeug & Band","Fitness & Pflege","Lotto","Bargeld","Privat & Freunde",SPECIAL_KK,"Sonstiges"];
 const INCOME_CATS=["Gehalt","Honorar & Nebenverdienst","Lotto (Gewinn)","Bargeld (Einzahlung)","Sonstige Einnahmen"];
-const ALL_CATS=[...EXPENSE_CATS,...INCOME_CATS,SPECIAL_EIGEN];
+const ALL_CATS=[...EXPENSE_CATS,...INCOME_CATS,SPECIAL_EIGEN,SPECIAL_AUFL];
 
 function parseCSV(text){
   text=text.replace(/^﻿/,"");
@@ -298,6 +300,8 @@ function dn(r){
     const mer=m&&m[1].replace(/^\.\s*/,"").trim();
     return mer?"PayPal · "+mer:"PayPal";
   }
+  if(/devk/i.test(n)&&r.a>0) return "DEVK Bonussparvertrag (Auflösung)";
+  if(n==="Alexander Wolf"&&r.a>0) return "Bonussparvertrag Sparda (Auflösung)";
   if(/devk allgemeine/i.test(n)) return "DEVK Kfz-Versicherung";
   if(/devk/i.test(n)) return /haushaltglas|hausrat|haftpflicht/i.test(z)?"DEVK Glas, Hausrat & Haftpflicht":"DEVK Berufsunfähigkeit + Rechtsschutz";
   if(/barmenia/i.test(n)) return "Zahnzusatz Barmenia";
@@ -330,8 +334,8 @@ const EXP_RULES=[
   ["Fitness & Pflege",/fitness first|smile x|haare|friseur|barber|yedo|rituals|apotheke|ganzheit|gfg /],
   ["Lebensmittel & Drogerie",/rewe|penny|aldi|edeka|lidl|globus markthalle|dm drogerie|drogeriemarkt|müller|mueller|sehne|backwaren|getränke|getraenke|welsch|netto|kaufland|bäcker|baeckerei|carrefour|delhaize/],
   ["Auto & Tanken",/aral|shell|oil tank|tankstelle|calpam|circle k|couche-tard|reifen|wash|acv|kfz-steuer|q park|parkhaus|raststa|autobahn/],
-  ["Freizeit & Reisen",/eventim|bahn|zugspitz|wank|alpspitz|osterfelder|trimini|kino|konzert|ticket|hotel|booking|wittelsbacher|schloss/],
-  ["Essen & Ausgehen",/subway|cafe|café|bistro|gastro|frittenwerk|santiago|restaurant|pizza|mcdonald|burger|fischers|imbiss|kebab|bar |waffel|hofbr|stüberl|stueberl/],
+  ["Freizeit & Reisen",/eventim|arena|htl\.|bahn|zugspitz|wank|alpspitz|osterfelder|trimini|kino|konzert|ticket|hotel|booking|wittelsbacher|schloss/],
+  ["Essen & Ausgehen",/subway|cafe|café|bistro|gastro|frittenwerk|santiago|restaurant|pizza|pizzeri|mcdonald|burger|fischers|imbiss|kebab|bar |waffel|hofbr|stüberl|stueberl/],
   ["Shopping & Online",/paypal|amazon|jack wolfskin|tnf|vans|lfo|style|butlers|ikea|baumarkt|globus|pme legend|wirwinzer|zalando|ebay|decathlon/],
   ["Bargeld",/bargeldauszahlung/],
   ["Privat & Freunde",/echtzeitüberweisung \(privat\)|bandmitglied/]
@@ -339,6 +343,7 @@ const EXP_RULES=[
 function categorize(r){
   const d=dn(r), t=(d+" "+(r.z||"")).toLowerCase();
   if(r.a>0){
+    if(/auflösung|aufloesung/.test(t)) return SPECIAL_AUFL;
     if(r.art==="Gehalt") return "Gehalt";
     if(/handwerkskammer|honorar/.test(t)) return "Honorar & Nebenverdienst";
     if(/sporttoto|lotto/.test(t)) return "Lotto (Gewinn)";
@@ -352,7 +357,7 @@ function categorize(r){
 const FIXDEF=[
   {l:"Kontoführung (nach Vorteils-Stufe)",f:"m",re:/^Kontoführung/},
   {l:"Riester (Bayerische)",f:"m",re:/^Riester/},
-  {l:"Bonussparvertrag Sparda",f:"m",re:/^Bonussparvertrag/},
+  {l:"Bonussparvertrag Sparda",f:"m",re:/^Bonussparvertrag/,end:"2026-10"},
   {l:"Bausparvertrag Wüstenrot",f:"m",re:/^Bausparvertrag/},
   {l:"ETF-Sparplan Union Investment",f:"m",re:/^ETF-Sparplan Union/},
   {l:"ETF-Sparplan Gothaer",f:"m",re:/^ETF-Sparplan Gothaer/},
@@ -367,14 +372,14 @@ const FIXDEF=[
   {l:"Netflix",f:"m",re:/^Netflix/},
   {l:"Handy Telekom (inkl. iCloud 200 GB)",f:"m",re:/^Handy Telekom/},
   {l:"Lotto Saartoto (wöchentlich)",f:"w",re:/^Lotto Saartoto/},
-  {l:"Fitness (alle 2 Wochen)",f:"b",re:/fitness first|smile x/i},
+  {l:"Fitness (alle 2 Wochen)",f:"b",re:/fitness first|smile x/i,end:"2026-10"},
   {l:"ACV Automobil-Club",f:"y",re:/^ACV/},
   {l:"Kfz-Steuer",f:"y",re:/^Kfz-Steuer/},
   {l:"Amazon Prime",f:"y",re:/^Amazon Prime/,fb:{a:89.90,day:16,mon:3}},
   {l:"Mastercard GoldCard (Jahresbeitrag)",f:"y",re:/^Mastercard GoldCard Jahresbeitrag$/,fb:{a:84.00,day:1,mon:9},fbSrc:"laut Kreditkarten-Abrechnung 09/2026, Abbuchung vom Girokonto Anfang Oktober"}
 ];
 function fixInfo(rows){
-  return FIXDEF.map(d=>{
+  return FIXDEF.filter(d=>!d.end).map(d=>{
     const hits=rows.filter(r=>r.a<0&&d.re.test(r.disp)).sort((x,y)=>y.d.localeCompare(x.d));
     let o=null;
     if(hits.length){ const r=hits[0]; o={a:-r.a,day:+r.d.slice(8,10),mon:+r.d.slice(5,7),found:true}; }
@@ -423,7 +428,7 @@ const catColor=c=>CAT_COLORS[c]||"#8a94a6";
 function compute(rows,k){
   const inc={},exp={};let income=0,expense=0,eigen=0;
   rows.forEach(r=>{
-    if(r.cat===SPECIAL_EIGEN){ eigen+=Math.abs(r.a); return; }
+    if(isUms(r)){ eigen+=Math.abs(r.a); return; }
     if(r.a>0){ income+=r.a; inc[r.cat]=(inc[r.cat]||0)+r.a; }
     else { expense+=-r.a; exp[r.cat]=(exp[r.cat]||0)+(-r.a); }
   });
@@ -446,7 +451,7 @@ function renderKpis(){
   $("kSaldoL").textContent="Saldo (Einnahmen minus Ausgaben)"+(avg?", Ø pro Monat":"");
   const saldo=C.saldo/k;
   $("kSaldo").textContent=(saldo>0?"+":"")+eur.format(saldo);
-  $("kSaldoH").textContent=C.eigen>0?("Ohne Eigenüberweisungen von "+eur.format(C.eigen/k)+(avg?" pro Monat":"")):"";
+  $("kSaldoH").textContent=C.eigen>0?("Ohne Umbuchungen und Spar-Auflösungen von "+eur.format(C.eigen/k)+(avg?" pro Monat":"")):"";
   $("kIn").textContent=eur.format(C.income/k);
   $("kInH").textContent=avg?"Ø pro Monat":"im Monat";
   $("kOut").textContent=eur.format(C.expense/k);
@@ -496,7 +501,7 @@ function renderDonut(){
   $("legend").innerHTML=ent.map(([c,v])=>'<div class="lg"><span class="dot" style="background:'+catColor(c)+'"></span><span class="name">'+esc(c)+'</span><span class="amt">'+eur.format(v/k)+'</span><span class="pct">'+Math.round(v/total*100)+' %</span></div>').join("");
   const notes=[];
   if(C.exp[SPECIAL_KK]) notes.push("Die Mastercard-Abrechnung ist eine Sammelbuchung. Sobald die einzelnen Kreditkarten-Umsätze eingelesen sind, ersetzen sie diesen Posten.");
-  if(C.eigen>0) notes.push("Eigenüberweisungen ("+eur.format(C.eigen/k)+") sind nicht mitgezählt.");
+  if(C.eigen>0) notes.push("Umbuchungen zwischen deinen Konten und Spar-Auflösungen ("+eur.format(C.eigen/k)+") sind nicht mitgezählt.");
   $("catNote").textContent=notes.join(" ")||"Die Kategorien sind ein Vorschlag und lassen sich unten ändern.";
 }
 
@@ -564,7 +569,7 @@ function renderSplit(){
   const verbrauch=ex.reduce((t,r)=>t-r.a,0)/k-save;
   const gehalt=salaryOf(rows)/k;
   const eOut=rows.filter(r=>r.cat===SPECIAL_EIGEN&&r.a<0).reduce((t,r)=>t-r.a,0)/k;
-  const eIn=rows.filter(r=>r.cat===SPECIAL_EIGEN&&r.a>0).reduce((t,r)=>t+r.a,0)/k;
+  const eIn=rows.filter(r=>isUms(r)&&r.a>0).reduce((t,r)=>t+r.a,0)/k;
   const outRows=rows.filter(r=>r.cat===SPECIAL_EIGEN&&r.a<0);
   const toTR=outRows.length>0&&outRows.every(r=>/trade republic/i.test(r.disp));
   const bilanz=gehalt-verbrauch-save;
@@ -577,7 +582,7 @@ function renderSplit(){
     +line("Sparen &amp; Vorsorge",save,false,"Riester, Bausparvertrag, ETF-Sparpläne, Aktien","−")
     +line("Bilanz nach Verbrauch und Sparen",bilanz,true)
     +line(toTR?"Aufs Trade Republic Konto umgebucht":"Auf eigene Konten umgebucht",eOut,false,"keine Ausgabe, nicht in der Bilanz")
-    +line("Von eigenen Konten zurück",eIn,false,"keine Einnahme, nicht in der Bilanz")
+    +line("Von eigenen Konten und aufgelösten Ersparnissen",eIn,false,"keine Einnahme, nicht in der Bilanz")
     +'</tbody>';
   $("splitNote").textContent="Gespartes ist hier kein Verbrauch: Es liegt weiter in deinem Vermögen. Nebeneinnahmen sind wie beim Budget nicht eingerechnet. Mit „Ausblenden“ verschwindet der Bereich wieder.";
 }
@@ -611,7 +616,7 @@ function renderBudget(){
     +line("Übrige Ausgaben",other,false,"Lebensmittel, Tanken, Shopping, Kreditkarte …")
     +line("Freiraum nach allen Ausgaben",rest,true)
     +'</tbody>';
-  $("budgetNote").textContent="Oben steht der Plan-Wert (Durchschnitt: "+eur.format(sum)+" Fixkosten pro Monat, Jahreskosten ÷ 12 und Lotto/Fitness umgerechnet). Unten steht, was im gewählten Zeitraum wirklich abgebucht wurde, deshalb weichen die Zahlen leicht ab. Bezogen nur auf das Gehalt. Nebeneinnahmen (PayPal-Eingänge, Lotto-Gewinne, Honorar) und Eigenüberweisungen sind nicht eingerechnet.";
+  $("budgetNote").textContent="Oben steht der Plan-Wert (Durchschnitt: "+eur.format(sum)+" Fixkosten pro Monat, Jahreskosten ÷ 12 und Lotto/Fitness umgerechnet). Unten steht, was im gewählten Zeitraum wirklich abgebucht wurde, deshalb weichen die Zahlen leicht ab. Bezogen nur auf das Gehalt. Nebeneinnahmen (PayPal-Eingänge, Lotto-Gewinne, Honorar), Umbuchungen und Spar-Auflösungen sind nicht eingerechnet.";
 }
 
 function renderTop(){
